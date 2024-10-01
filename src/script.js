@@ -32,8 +32,8 @@
 // innerWidthは危険 https://web-guided.com/1376/#google_vignette
 // ちなみにp5の組み込み変数windowWidthの規定値はinnerWidthです（heightも同様）
 // なぜ危険かというと答えは簡単でpixelDensityを反映するからですね
-const CANVAS_WIDTH = window.innerWidth;
-const CANVAS_HEIGHT = window.innerHeight;
+const CANVAS_WIDTH = window.innerWidth/window.devicePixelRatio;
+const CANVAS_HEIGHT = window.innerHeight/window.devicePixelRatio;
 
 let TC;
 
