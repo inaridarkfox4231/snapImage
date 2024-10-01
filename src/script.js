@@ -112,8 +112,11 @@ function createGUI(){
   gui.close();
 }
 
-const CANVAS_WIDTH = window.innerWidth;
-const CANVAS_HEIGHT = window.innerHeight;
+// innerWidthは危険 https://web-guided.com/1376/#google_vignette
+// ちなみにp5の組み込み変数windowWidthの規定値はinnerWidthです（heightも同様）
+// なぜ危険かというと答えは簡単でpixelDensityを反映するからですね
+const CANVAS_WIDTH = window.screen.width;
+const CANVAS_HEIGHT = window.screen.height;
 
 // 関数化は一旦見送り
 // いろいろ実験しないといけない
