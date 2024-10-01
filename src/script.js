@@ -23,27 +23,12 @@
   2024/09/30
   1.11.0ですって
   わぁお
-
-  fontいろいろ導入
-  あと改行ですねこれの対応
-  取得部分いじればいいですね
 */
 
-// innerWidthは危険 https://web-guided.com/1376/#google_vignette
-// ちなみにp5の組み込み変数windowWidthの規定値はinnerWidthです（heightも同様）
-// なぜ危険かというと答えは簡単でpixelDensityを反映するからですね
-const CANVAS_WIDTH = Math.floor(window.innerWidth/window.devicePixelRatio);
-const CANVAS_HEIGHT = Math.floor(window.innerHeight/window.devicePixelRatio);
+const CANVAS_WIDTH = window.innerWidth;
+const CANVAS_HEIGHT = window.innerHeight;
 
 let TC;
-
-let fonts = {'sans-serif':"sans-serif"};
-
-function preload(){
-  fonts.mincho = loadFont("https://inaridarkfox4231.github.io/assets/HannariMincho-Regular.otf");
-  fonts.hui = loadFont("https://inaridarkfox4231.github.io/assets/HuiFont29.ttf");
-  fonts.kosugimaru = loadFont("https://inaridarkfox4231.github.io/assets/KosugiMaru-Regular.ttf");
-}
 
 let config = {
   content:"text",
@@ -54,7 +39,6 @@ let config = {
   y:0,
   alignV:"left",
   alignH:"top",
-  fontType:"sans-serif",
   fitW:1,
   fitH:1,
   saveName:"",
@@ -95,9 +79,6 @@ function createGUI(){
   controllers.alignH = gui.add(config, "alignH", ["top","center","bottom"]).onChange(
     (value) => {TC.modifyTextObject("alignH", value);}
   );
-  controllers.fontType = gui.add(config, "fontType", ['sans-serif', 'mincho', 'hui', 'kosugimaru']).onChange(
-    (value) => {TC.modifyTextObject("fontType", value);}
-  )
   gui.add({fun:()=>TC.addTextObject(new TextObject())}, 'fun').name('addText');
   gui.add({fun:()=>{TC.removeTextObject()}}, 'fun').name('removeText');
 
@@ -131,8 +112,6 @@ function createGUI(){
 const fileTag = document.createElement("input");
 fileTag.setAttribute("id", "file");
 fileTag.setAttribute("type", "file");
-fileTag.style.width = "180px";
-fileTag.style.height = "40px";
 // これで複数選択できるようになる
 // Ctrlで複数クリックした後でEnterキーを押せば完了する（今回は不要...）
 //fileTag.setAttribute("multiple", "");
@@ -198,17 +177,6 @@ function setup() {
 
   createGUI();
 
-  // gh-pagesの自動サイズ変更の対抗策
-  const lil = document.getElementsByClassName("lil-gui root allow-touch-styles autoPlace closed")[0];
-  lil.style.width = Math.floor(width/2) + "px";
-  lil.style.resize = "none";
-  const textBoxDOM = document.getElementsByTagName("input")[0];
-  textBoxDOM.style.fontSize = "18px";
-  textBoxDOM.style.resize = "none";
-  const saveNameBoxDOM = document.getElementsByTagName("input")[9];
-  saveNameBoxDOM.style.fontSize = "18px";
-  saveNameBoxDOM.style.resize = "none";
-
   TC = new TextController(this.canvas);
 
   // 文字入力中はコンフィグにフォーカスしているので
@@ -242,34 +210,27 @@ function setup() {
 
   // あとから配置を決める。
   document.getElementById("defaultCanvas0").before(fileTag);
-  const cvs = document.getElementById("defaultCanvas0");
-  cvs.style.width = CANVAS_WIDTH+"px";
-  cvs.style.height = CANVAS_HEIGHT+"px";
 }
 
 function draw() {
   background(220);
 
-  push();
-  fill(0);
-  noStroke();
-  textSize(12);
-	textAlign(LEFT,TOP);
-	text("width:"+width,5,5);
-	text("windowWidth:"+windowWidth,5,35);
-	text("window.innerWidth:"+window.innerWidth,5,65);
-	text("window.screen.width:"+window.screen.width,5,95);
-	text("height:"+height,5,145);
-	text("windowHeight:"+windowHeight,5,175);
-	text("window.innerHeight:"+window.innerHeight,5,205);
-	text("window.screen.height:"+window.screen.height,5,235);
-	text("devicePixelRatio:"+window.devicePixelRatio,5,285);
-
-  text("テスト中", 5, 335);
-  pop();
-
-  if(loadedImg === undefined){ return; }
-  background(220);
+  if(loadedImg === undefined){
+    push();
+    textSize(12);
+    textAlign(LEFT,TOP);
+    text("width:"+width,5,5);
+    text("windowWidth:"+windowWidth,5,35);
+    text("window.innerWidth:"+window.innerWidth,5,65);
+    text("window.screen.width:"+window.screen.width,5,95);
+    text("height:"+height,5,145);
+    text("windowHeight:"+windowHeight,5,175);
+    text("window.innerHeight:"+window.innerHeight,5,205);
+    text("window.screen.height:"+window.screen.height,5,235);
+    text("devicePixelRatio:"+window.devicePixelRatio,5,285);
+    pop();
+    return;
+  }
 
   FC.update();
   FC.display(this);
@@ -534,21 +495,11 @@ function saveRegion(saveName, saveRatio = 1){
   saveGraphic.save(saveName);
 }
 
-// 改行処理の関数
-function applyLineBreak(txt){
-  const splittedText = txt.split('\\n');
-  if(splittedText.length === 1){
-    return txt;
-  }
-  const resultText = splittedText.reduce((s0, s1) => s0.concat('\n').concat(s1));
-  return resultText;
-}
-
 class TextObject{
   constructor(params = {}){
     const {
       content = "text", initialSize = 40, x = 0, y = 0,
-      alignV="left", alignH="top", fontType = 'sans-serif',
+      alignV="left", alignH="top",
       col={r:255,g:255,b:255}, alphaValue = 255
     } = params;
     this.content = content;
@@ -557,14 +508,13 @@ class TextObject{
     this.y = y;
     this.alignV = alignV;
     this.alignH = alignH;
-    this.fontType = fontType;
     this.col = col;
     this.alphaValue = alphaValue;
     this.active = false;
   }
   activate(){
     this.active = true;
-    for(const name of ["x","y","content","alignV","alignH","fontType","size","col","alphaValue"]){
+    for(const name of ["x","y","content","alignV","alignH","size","col","alphaValue"]){
       if(name !== "col"){
         config[name] = this[name];
         controllers[name].updateDisplay();
@@ -585,14 +535,10 @@ class TextObject{
     this.y = Math.floor(this.y);
   }
   modify(name, content){
-    if(!["x","y","content","alignV","alignH","fontType","size","col","alphaValue"].includes(name)) return;
+    if(!["x","y","content","alignV","alignH","size","col","alphaValue"].includes(name)) return;
     // x,y,content,alignV,alignH,size
     if(name !== "col"){
-      if(name === 'content'){
-        this.content = applyLineBreak(content);
-      }else{
-        this[name] = content;
-      }
+      this[name] = content;
     }else{
       this.col = {r:content.r, g:content.g, b:content.b};
     }
@@ -603,7 +549,6 @@ class TextObject{
   display(target){
     target.push();
     target.noStroke();
-    target.textFont(fonts[this.fontType]);
     target.textSize(this.size);
     target.textAlign(this.alignV, this.alignH);
     const factor = (this.active ? 0.4+0.3*Math.cos(frameCount*TAU/120) : 1);
@@ -616,7 +561,6 @@ class TextObject{
     const x = (this.x-targetFrame.x)/mfScale;
     const y = (this.y-targetFrame.y)/mfScale;
     target.noStroke();
-    target.textFont(fonts[this.fontType]);
     target.textSize(this.size/mfScale);
     target.textAlign(this.alignV, this.alignH);
     target.fill(this.col.r, this.col.g, this.col.b, this.alphaValue);
