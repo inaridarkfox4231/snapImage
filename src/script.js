@@ -217,6 +217,8 @@ function draw() {
 
   if(loadedImg === undefined){
     push();
+    fill(0);
+    noStroke();
     textSize(12);
     textAlign(LEFT,TOP);
     text("width:"+width,5,5);
