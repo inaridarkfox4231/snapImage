@@ -58,7 +58,7 @@ let config = {
 const controllers = {};
 
 function createGUI(){
-  const gui = new lil.GUI();
+  const gui = new lil.GUI({width:220});
   gui.add({fun:()=>{
     switchTarget();
   }},'fun').name('switchTarget');
@@ -102,7 +102,7 @@ function createGUI(){
     (value) => {fitting(config.fitW, value);}
   );
   gui.add({fun:()=>{
-    fitting(config.fitW, config.fitH);
+    fitting(1, 1);
   }}, 'fun').name('fit');
   gui.add(config, "saveName");
   gui.add(config, "saveRatio", 0.01, 1, 0.01);
