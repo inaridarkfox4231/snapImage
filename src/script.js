@@ -198,6 +198,7 @@ function setup() {
   // gh-pagesの自動サイズ変更の対抗策
   const lil = document.getElementsByClassName("lil-gui root allow-touch-styles autoPlace closed")[0];
   lil.style.width = Math.floor(width/2) + "px";
+  lil.style.resize = "none";
   const textBoxDOM = document.getElementsByTagName("input")[0];
   textBoxDOM.style.fontSize = "18px";
   textBoxDOM.style.resize = "none";
