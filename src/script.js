@@ -193,13 +193,15 @@ function setup() {
 
   createGUI();
 
+  // gh-pagesの自動サイズ変更の対抗策
   const lil = document.getElementsByClassName("lil-gui root allow-touch-styles autoPlace closed")[0];
-	//console.log(lil);
-  lil.style.width = Math.floor(0.5*width) + "px";
-  const dom2 = document.getElementsByTagName("input")[0];
-	//console.log(dom2);
-	dom2.style.fontSize = "22px";
-	dom2.style.resize = "none";
+  lil.style.width = 250 + "px";
+  const textBoxDOM = document.getElementsByTagName("input")[0];
+	textBoxDOM.style.fontSize = "18px";
+	textBoxDOM.style.resize = "none";
+  const saveNameBoxDOM = document.getElementsByTagName("input")[9];
+	saveNameBoxDOM.style.fontSize = "18px";
+	saveNameBoxDOM.style.resize = "none";
 
   TC = new TextController(this.canvas);
 
