@@ -115,8 +115,8 @@ function createGUI(){
 // innerWidthは危険 https://web-guided.com/1376/#google_vignette
 // ちなみにp5の組み込み変数windowWidthの規定値はinnerWidthです（heightも同様）
 // なぜ危険かというと答えは簡単でpixelDensityを反映するからですね
-const CANVAS_WIDTH = window.screen.width;
-const CANVAS_HEIGHT = window.screen.height;
+const CANVAS_WIDTH = window.screen.width/window.devicePixelRatio;
+const CANVAS_HEIGHT = window.screen.height/window.devicePixelRatio;
 
 // 関数化は一旦見送り
 // いろいろ実験しないといけない
@@ -247,7 +247,24 @@ function setup() {
 function draw() {
   background(220);
 
+  push();
+  fill(0);
+  noStroke();
+  textSize(24);
+	textAlign(LEFT,TOP);
+	text("width:"+width,5,5);
+	text("windowWidth:"+windowWidth,5,35);
+	text("window.innerWidth:"+window.innerWidth,5,65);
+	text("window.screen.width:"+window.screen.width,5,95);
+	text("height:"+height,5,145);
+	text("windowHeight:"+windowHeight,5,175);
+	text("window.innerHeight:"+window.innerHeight,5,205);
+	text("window.screen.height:"+window.screen.height,5,235);
+	text("devicePixelRatio:"+window.devicePixelRatio,5,285);
+  pop();
+
   if(loadedImg === undefined){ return; }
+  background(220);
 
   FC.update();
   FC.display(this);
