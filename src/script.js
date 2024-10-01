@@ -32,8 +32,8 @@
 // innerWidthは危険 https://web-guided.com/1376/#google_vignette
 // ちなみにp5の組み込み変数windowWidthの規定値はinnerWidthです（heightも同様）
 // なぜ危険かというと答えは簡単でpixelDensityを反映するからですね
-const CANVAS_WIDTH = window.screen.width/window.devicePixelRatio;
-const CANVAS_HEIGHT = window.screen.height/window.devicePixelRatio;
+const CANVAS_WIDTH = window.innerWidth;
+const CANVAS_HEIGHT = window.innerHeight;
 
 let TC;
 
@@ -242,6 +242,9 @@ function setup() {
 
   // あとから配置を決める。
   document.getElementById("defaultCanvas0").before(fileTag);
+  const cvs = document.getElementById("defaultCanvas0");
+  cvs.style.width = window.innerWidth+"px";
+  cvs.style.height = window.innerHeight+"px";
 }
 
 function draw() {
@@ -250,7 +253,7 @@ function draw() {
   push();
   fill(0);
   noStroke();
-  textSize(24);
+  textSize(12);
 	textAlign(LEFT,TOP);
 	text("width:"+width,5,5);
 	text("windowWidth:"+windowWidth,5,35);
