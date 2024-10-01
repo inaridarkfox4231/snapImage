@@ -58,7 +58,7 @@ let config = {
 const controllers = {};
 
 function createGUI(){
-  const gui = new lil.GUI({width:window.innerWidth*0.5});
+  const gui = new lil.GUI();
   gui.add({fun:()=>{
     switchTarget();
   }},'fun').name('switchTarget');
@@ -128,6 +128,8 @@ const CANVAS_HEIGHT = window.innerHeight;
 const fileTag = document.createElement("input");
 fileTag.setAttribute("id", "file");
 fileTag.setAttribute("type", "file");
+fileTag.style.width = "180px";
+fileTag.style.height = "40px";
 // これで複数選択できるようになる
 // Ctrlで複数クリックした後でEnterキーを押せば完了する（今回は不要...）
 //fileTag.setAttribute("multiple", "");
@@ -195,13 +197,13 @@ function setup() {
 
   // gh-pagesの自動サイズ変更の対抗策
   const lil = document.getElementsByClassName("lil-gui root allow-touch-styles autoPlace closed")[0];
-  lil.style.width = 250 + "px";
+  lil.style.width = Math.floor(width/2) + "px";
   const textBoxDOM = document.getElementsByTagName("input")[0];
-	textBoxDOM.style.fontSize = "18px";
-	textBoxDOM.style.resize = "none";
+  textBoxDOM.style.fontSize = "18px";
+  textBoxDOM.style.resize = "none";
   const saveNameBoxDOM = document.getElementsByTagName("input")[9];
-	saveNameBoxDOM.style.fontSize = "18px";
-	saveNameBoxDOM.style.resize = "none";
+  saveNameBoxDOM.style.fontSize = "18px";
+  saveNameBoxDOM.style.resize = "none";
 
   TC = new TextController(this.canvas);
 
