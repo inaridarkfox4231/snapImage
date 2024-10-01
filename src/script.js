@@ -38,6 +38,9 @@ let TC;
 
 let fonts = {'sans-serif':"sans-serif"};
 
+const CANVAS_WIDTH = window.innerWidth;
+const CANVAS_HEIGHT = window.innerHeight;
+
 function preload(){
   fonts.mincho = loadFont("https://inaridarkfox4231.github.io/assets/HannariMincho-Regular.otf");
   fonts.hui = loadFont("https://inaridarkfox4231.github.io/assets/HuiFont29.ttf");
@@ -73,10 +76,10 @@ function createGUI(){
   controllers.content = gui.add(config, "content").onChange(
     (value) => {TC.modifyTextObject("content", value);}
   );
-  controllers.x = gui.add(config, "x", 0, window.innerWidth, 1).onChange(
+  controllers.x = gui.add(config, "x", 0, CANVAS_WIDTH, 1).onChange(
     (value) => {TC.modifyTextObject("x", value);}
   );
-  controllers.y = gui.add(config, "y", 0, window.innerHeight, 1).onChange(
+  controllers.y = gui.add(config, "y", 0, CANVAS_HEIGHT, 1).onChange(
     (value) => {TC.modifyTextObject("y", value);}
   );
   controllers.size = gui.add(config, "size", 10, 320, 1).onChange(
@@ -116,9 +119,6 @@ function createGUI(){
   }}, 'fun').name('save');
   gui.close();
 }
-
-const CANVAS_WIDTH = window.innerWidth;
-const CANVAS_HEIGHT = window.innerHeight;
 
 // 関数化は一旦見送り
 // いろいろ実験しないといけない
@@ -236,32 +236,7 @@ function setup() {
 function draw() {
   background(220);
 
-  if(loadedImg === undefined){
-    push();
-    fill(0);
-    noStroke();
-    const cvs = document.getElementById("defaultCanvas0");
-  	const cvsStyle = window.getComputedStyle(cvs);
-  	textSize(15);
-  	textAlign(LEFT,TOP);
-  	text("width:"+width,5,5);
-  	text("windowWidth:"+windowWidth,5,25);
-  	text("window.innerWidth:"+window.innerWidth,5,45);
-  	text("window.screen.width:"+window.screen.width,5,85);
-  	text("height:"+height,5,105);
-  	text("windowHeight:"+windowHeight,5,125);
-  	text("window.innerHeight:"+window.innerHeight,5,145);
-  	text("window.screen.height:"+window.screen.height,5,165);
-  	text("devicePixelRatio:"+window.devicePixelRatio,5,185);
-  	text(cvsStyle.getPropertyValue("width"),5,205);
-  	text(cvsStyle.getPropertyValue("height"),5,225);
-  	text(document.documentElement.clientWidth,5,245);
-  	text(document.documentElement.clientHeight,5,265);
-  	text(document.body.clientWidth,5,285);
-  	text(document.body.clientHeight,5,305);
-    pop();
-		return;
-	}
+  if(loadedImg === undefined) return;
 
   FC.update();
   FC.display(this);
