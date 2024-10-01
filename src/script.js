@@ -193,6 +193,10 @@ function setup() {
 
   createGUI();
 
+  const lil = document.getElementsByClassName("lil-gui root allow-touch-styles autoPlace closed")[0];
+	//console.log(lil);
+  lil.style.width = Math.floor(0.5*width) + "px";
+
   TC = new TextController(this.canvas);
 
   // 文字入力中はコンフィグにフォーカスしているので
