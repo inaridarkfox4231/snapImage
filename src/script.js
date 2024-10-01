@@ -29,6 +29,12 @@
   取得部分いじればいいですね
 */
 
+// innerWidthは危険 https://web-guided.com/1376/#google_vignette
+// ちなみにp5の組み込み変数windowWidthの規定値はinnerWidthです（heightも同様）
+// なぜ危険かというと答えは簡単でpixelDensityを反映するからですね
+const CANVAS_WIDTH = window.screen.width/window.devicePixelRatio;
+const CANVAS_HEIGHT = window.screen.height/window.devicePixelRatio;
+
 let TC;
 
 let fonts = {'sans-serif':"sans-serif"};
@@ -68,10 +74,10 @@ function createGUI(){
   controllers.content = gui.add(config, "content").onChange(
     (value) => {TC.modifyTextObject("content", value);}
   );
-  controllers.x = gui.add(config, "x", 0, window.innerWidth, 1).onChange(
+  controllers.x = gui.add(config, "x", 0, CANVAS_WIDTH, 1).onChange(
     (value) => {TC.modifyTextObject("x", value);}
   );
-  controllers.y = gui.add(config, "y", 0, window.innerHeight, 1).onChange(
+  controllers.y = gui.add(config, "y", 0, CANVAS_HEIGHT, 1).onChange(
     (value) => {TC.modifyTextObject("y", value);}
   );
   controllers.size = gui.add(config, "size", 10, 320, 1).onChange(
@@ -111,12 +117,6 @@ function createGUI(){
   }}, 'fun').name('save');
   gui.close();
 }
-
-// innerWidthは危険 https://web-guided.com/1376/#google_vignette
-// ちなみにp5の組み込み変数windowWidthの規定値はinnerWidthです（heightも同様）
-// なぜ危険かというと答えは簡単でpixelDensityを反映するからですね
-const CANVAS_WIDTH = window.screen.width/window.devicePixelRatio;
-const CANVAS_HEIGHT = window.screen.height/window.devicePixelRatio;
 
 // 関数化は一旦見送り
 // いろいろ実験しないといけない
