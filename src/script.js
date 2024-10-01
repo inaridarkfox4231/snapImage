@@ -23,12 +23,26 @@
   2024/09/30
   1.11.0ですって
   わぁお
+
+  fontいろいろ導入
+  あと改行ですねこれの対応
+  取得部分いじればいいですね
+
+  うぜぇcss
+  激流にのまれている
+  とりあえずgh_pagesがぶっ壊れてるのはよくわかった
+  もういっそ私設サイト作ろう
 */
 
-const CANVAS_WIDTH = window.innerWidth;
-const CANVAS_HEIGHT = window.innerHeight;
-
 let TC;
+
+let fonts = {'sans-serif':"sans-serif"};
+
+function preload(){
+  fonts.mincho = loadFont("https://inaridarkfox4231.github.io/assets/HannariMincho-Regular.otf");
+  fonts.hui = loadFont("https://inaridarkfox4231.github.io/assets/HuiFont29.ttf");
+  fonts.kosugimaru = loadFont("https://inaridarkfox4231.github.io/assets/KosugiMaru-Regular.ttf");
+}
 
 let config = {
   content:"text",
@@ -39,6 +53,7 @@ let config = {
   y:0,
   alignV:"left",
   alignH:"top",
+  fontType:"sans-serif",
   fitW:1,
   fitH:1,
   saveName:"",
@@ -58,10 +73,10 @@ function createGUI(){
   controllers.content = gui.add(config, "content").onChange(
     (value) => {TC.modifyTextObject("content", value);}
   );
-  controllers.x = gui.add(config, "x", 0, CANVAS_WIDTH, 1).onChange(
+  controllers.x = gui.add(config, "x", 0, window.innerWidth, 1).onChange(
     (value) => {TC.modifyTextObject("x", value);}
   );
-  controllers.y = gui.add(config, "y", 0, CANVAS_HEIGHT, 1).onChange(
+  controllers.y = gui.add(config, "y", 0, window.innerHeight, 1).onChange(
     (value) => {TC.modifyTextObject("y", value);}
   );
   controllers.size = gui.add(config, "size", 10, 320, 1).onChange(
@@ -79,6 +94,9 @@ function createGUI(){
   controllers.alignH = gui.add(config, "alignH", ["top","center","bottom"]).onChange(
     (value) => {TC.modifyTextObject("alignH", value);}
   );
+  controllers.fontType = gui.add(config, "fontType", ['sans-serif', 'mincho', 'hui', 'kosugimaru']).onChange(
+    (value) => {TC.modifyTextObject("fontType", value);}
+  )
   gui.add({fun:()=>TC.addTextObject(new TextObject())}, 'fun').name('addText');
   gui.add({fun:()=>{TC.removeTextObject()}}, 'fun').name('removeText');
 
@@ -98,6 +116,9 @@ function createGUI(){
   }}, 'fun').name('save');
   gui.close();
 }
+
+const CANVAS_WIDTH = window.innerWidth;
+const CANVAS_HEIGHT = window.innerHeight;
 
 // 関数化は一旦見送り
 // いろいろ実験しないといけない
@@ -219,20 +240,28 @@ function draw() {
     push();
     fill(0);
     noStroke();
-    textSize(12);
-    textAlign(LEFT,TOP);
-    text("width:"+width,5,5);
-    text("windowWidth:"+windowWidth,5,35);
-    text("window.innerWidth:"+window.innerWidth,5,65);
-    text("window.screen.width:"+window.screen.width,5,95);
-    text("height:"+height,5,145);
-    text("windowHeight:"+windowHeight,5,175);
-    text("window.innerHeight:"+window.innerHeight,5,205);
-    text("window.screen.height:"+window.screen.height,5,235);
-    text("devicePixelRatio:"+window.devicePixelRatio,5,285);
+    const cvs = document.getElementById("defaultCanvas0");
+  	const cvsStyle = window.getComputedStyle(cvs);
+  	textSize(15);
+  	textAlign(LEFT,TOP);
+  	text("width:"+width,5,5);
+  	text("windowWidth:"+windowWidth,5,25);
+  	text("window.innerWidth:"+window.innerWidth,5,45);
+  	text("window.screen.width:"+window.screen.width,5,85);
+  	text("height:"+height,5,105);
+  	text("windowHeight:"+windowHeight,5,125);
+  	text("window.innerHeight:"+window.innerHeight,5,145);
+  	text("window.screen.height:"+window.screen.height,5,165);
+  	text("devicePixelRatio:"+window.devicePixelRatio,5,185);
+  	text(cvsStyle.getPropertyValue("width"),5,205);
+  	text(cvsStyle.getPropertyValue("height"),5,225);
+  	text(document.documentElement.clientWidth,5,245);
+  	text(document.documentElement.clientHeight,5,265);
+  	text(document.body.clientWidth,5,285);
+  	text(document.body.clientHeight,5,305);
     pop();
-    return;
-  }
+		return;
+	}
 
   FC.update();
   FC.display(this);
@@ -497,11 +526,21 @@ function saveRegion(saveName, saveRatio = 1){
   saveGraphic.save(saveName);
 }
 
+// 改行処理の関数
+function applyLineBreak(txt){
+  const splittedText = txt.split('\\n');
+  if(splittedText.length === 1){
+    return txt;
+  }
+  const resultText = splittedText.reduce((s0, s1) => s0.concat('\n').concat(s1));
+  return resultText;
+}
+
 class TextObject{
   constructor(params = {}){
     const {
       content = "text", initialSize = 40, x = 0, y = 0,
-      alignV="left", alignH="top",
+      alignV="left", alignH="top", fontType = 'sans-serif',
       col={r:255,g:255,b:255}, alphaValue = 255
     } = params;
     this.content = content;
@@ -510,13 +549,14 @@ class TextObject{
     this.y = y;
     this.alignV = alignV;
     this.alignH = alignH;
+    this.fontType = fontType;
     this.col = col;
     this.alphaValue = alphaValue;
     this.active = false;
   }
   activate(){
     this.active = true;
-    for(const name of ["x","y","content","alignV","alignH","size","col","alphaValue"]){
+    for(const name of ["x","y","content","alignV","alignH","fontType","size","col","alphaValue"]){
       if(name !== "col"){
         config[name] = this[name];
         controllers[name].updateDisplay();
@@ -537,10 +577,14 @@ class TextObject{
     this.y = Math.floor(this.y);
   }
   modify(name, content){
-    if(!["x","y","content","alignV","alignH","size","col","alphaValue"].includes(name)) return;
+    if(!["x","y","content","alignV","alignH","fontType","size","col","alphaValue"].includes(name)) return;
     // x,y,content,alignV,alignH,size
     if(name !== "col"){
-      this[name] = content;
+      if(name === 'content'){
+        this.content = applyLineBreak(content);
+      }else{
+        this[name] = content;
+      }
     }else{
       this.col = {r:content.r, g:content.g, b:content.b};
     }
@@ -551,6 +595,7 @@ class TextObject{
   display(target){
     target.push();
     target.noStroke();
+    target.textFont(fonts[this.fontType]);
     target.textSize(this.size);
     target.textAlign(this.alignV, this.alignH);
     const factor = (this.active ? 0.4+0.3*Math.cos(frameCount*TAU/120) : 1);
@@ -563,6 +608,7 @@ class TextObject{
     const x = (this.x-targetFrame.x)/mfScale;
     const y = (this.y-targetFrame.y)/mfScale;
     target.noStroke();
+    target.textFont(fonts[this.fontType]);
     target.textSize(this.size/mfScale);
     target.textAlign(this.alignV, this.alignH);
     target.fill(this.col.r, this.col.g, this.col.b, this.alphaValue);
