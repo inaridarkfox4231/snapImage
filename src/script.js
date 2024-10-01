@@ -261,6 +261,8 @@ function draw() {
 	text("window.innerHeight:"+window.innerHeight,5,205);
 	text("window.screen.height:"+window.screen.height,5,235);
 	text("devicePixelRatio:"+window.devicePixelRatio,5,285);
+
+  text("情報", 5, 335);
   pop();
 
   if(loadedImg === undefined){ return; }
