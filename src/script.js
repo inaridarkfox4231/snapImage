@@ -58,7 +58,7 @@ let config = {
 const controllers = {};
 
 function createGUI(){
-  const gui = new lil.GUI({width:220});
+  const gui = new lil.GUI({width:window.innerWidth*0.5});
   gui.add({fun:()=>{
     switchTarget();
   }},'fun').name('switchTarget');
