@@ -196,6 +196,10 @@ function setup() {
   const lil = document.getElementsByClassName("lil-gui root allow-touch-styles autoPlace closed")[0];
 	//console.log(lil);
   lil.style.width = Math.floor(0.5*width) + "px";
+  const dom2 = document.getElementsByTagName("input")[0];
+	//console.log(dom2);
+	dom2.style.fontSize = "22px";
+	dom2.style.resize = "none";
 
   TC = new TextController(this.canvas);
 
