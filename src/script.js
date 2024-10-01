@@ -32,6 +32,31 @@
   激流にのまれている
   とりあえずgh_pagesがぶっ壊れてるのはよくわかった
   もういっそ私設サイト作ろう
+  それはハードルが高い
+
+  activateに関するバグを解消
+
+  leadingを導入
+  autoLeadingで通常の1.25倍をデフォルトにしたので
+  基本的にはいじらなくても大丈夫
+  いじることで間隔をあけて文を連ねるのとかできるにょ
+
+  縦書き？まあ全部全角が前提ですね...
+  英語やアルファベットが絡むと崩壊するので日本語前提です
+  そもそも縦書きは日本の（厳密には中国の？）文化だしな...
+
+  これでいいか
+  縦書きにも改行導入してもいいけど
+  めんどうだからやめよ
+
+  あとは背景くらいだけどな
+  めんどくさいな
+  イメージがわかないんだもん
+  まあグラデくらい？は、いいか。
+  それと回転。これはほんとに需要が分からんな
+  グラデなら、今黒一色で初期化してるところをいじる形にはなるな
+  あとはリファクタリング。その、コントローラーをまとめるとか（フォルダに）
+  せいぜいそんくらいしかない
 */
 
 let TC;
@@ -50,6 +75,9 @@ function preload(){
 let config = {
   content:"text",
   size:40,
+  leading:50,
+  autoLeading:true, // 自動的にテキストサイズからleadingが計算される（1.25倍）
+  vertical:false, // 縦書き
   col:{r:255,g:255,b:255},
   alphaValue:255,
   x:0,
@@ -85,6 +113,15 @@ function createGUI(){
   controllers.size = gui.add(config, "size", 10, 320, 1).onChange(
     (value) => {TC.modifyTextObject("size", value);}
   );
+  controllers.leading = gui.add(config, "leading", 10, 320, 1).onChange(
+    (value) => {TC.modifyTextObject("leading", value);}
+  );
+  controllers.autoLeading = gui.add(config, "autoLeading").onChange(
+    (value) => {TC.modifyTextObject("autoLeading", value);}
+  );
+  controllers.vertical = gui.add(config, "vertical").onChange(
+    (value) => {TC.modifyTextObject("vertical", value);}
+  );
   controllers.col = gui.addColor(config, "col", 255).onChange(
     (value) => {TC.modifyTextObject("col", value);}
   );
@@ -117,6 +154,7 @@ function createGUI(){
   gui.add({fun:()=>{
     saveRegion(config.saveName, config.saveRatio);
   }}, 'fun').name('save');
+
   gui.close();
 }
 
@@ -504,7 +542,17 @@ function saveRegion(saveName, saveRatio = 1){
 // 改行処理の関数
 function applyLineBreak(txt){
   const splittedText = txt.split('\\n');
-  if(splittedText.length === 1){
+  if(splittedText.length < 2){
+    return txt;
+  }
+  const resultText = splittedText.reduce((s0, s1) => s0.concat('\n').concat(s1));
+  return resultText;
+}
+
+// 縦書き化の関数
+function applyVerticalWriting(txt){
+  const splittedText = txt.split("");
+  if(splittedText.length < 2){
     return txt;
   }
   const resultText = splittedText.reduce((s0, s1) => s0.concat('\n').concat(s1));
@@ -520,6 +568,8 @@ class TextObject{
     } = params;
     this.content = content;
     this.size = initialSize;
+    this.leading = Math.floor(initialSize*1.25);
+    this.autoLeading = true;
     this.x = x;
     this.y = y;
     this.alignV = alignV;
@@ -531,7 +581,7 @@ class TextObject{
   }
   activate(){
     this.active = true;
-    for(const name of ["x","y","content","alignV","alignH","fontType","size","col","alphaValue"]){
+    for(const name of ["x","y","content","alignV","alignH","fontType","size","leading","autoLeading", "vertical", "col","alphaValue"]){
       if(name !== "col"){
         config[name] = this[name];
         controllers[name].updateDisplay();
@@ -552,11 +602,16 @@ class TextObject{
     this.y = Math.floor(this.y);
   }
   modify(name, content){
-    if(!["x","y","content","alignV","alignH","fontType","size","col","alphaValue"].includes(name)) return;
+    if(!["x","y","content","alignV","alignH","fontType","size","leading","autoLeading", "vertical", "col","alphaValue"].includes(name)) return;
     // x,y,content,alignV,alignH,size
     if(name !== "col"){
       if(name === 'content'){
         this.content = applyLineBreak(content);
+        // verticalで使う場合改行が絡むことはまずないので
+        // とはいえ場合分けも面倒なので直接やっちゃおう
+        if(this.vertical){
+          this.content = applyVerticalWriting(content);
+        }
       }else{
         this[name] = content;
       }
@@ -572,6 +627,11 @@ class TextObject{
     target.noStroke();
     target.textFont(fonts[this.fontType]);
     target.textSize(this.size);
+    if(this.autoLeading){
+      target.textLeading(Math.floor(this.size*1.25));
+    }else{
+      target.textLeading(this.leading);
+    }
     target.textAlign(this.alignV, this.alignH);
     const factor = (this.active ? 0.4+0.3*Math.cos(frameCount*TAU/120) : 1);
     target.fill(this.col.r, this.col.g, this.col.b, this.alphaValue*factor);
@@ -585,6 +645,11 @@ class TextObject{
     target.noStroke();
     target.textFont(fonts[this.fontType]);
     target.textSize(this.size/mfScale);
+    if(this.autoLeading){
+      target.textLeading(Math.floor(this.size*1.25/mfScale));
+    }else{
+      target.textLeading(this.leading/mfScale);
+    }
     target.textAlign(this.alignV, this.alignH);
     target.fill(this.col.r, this.col.g, this.col.b, this.alphaValue);
     target.text(this.content, x, y);
@@ -598,11 +663,12 @@ class TextController extends foxIA.Interaction{
     this.textObjects = [];
     this.currentId = -1;
     this.currentTextObject = null;
-    this.isActive = true;
+    this.isActive = false;
     this.isDragging = false;
   }
   activate(){
     this.isActive = true;
+    if(this.textObjects.length === 0) return;
     this.textObjects[this.currentId].activate();
   }
   inActivate(){
@@ -612,6 +678,7 @@ class TextController extends foxIA.Interaction{
     }
   }
   addTextObject(params = {}){
+    if(!this.isActive)return;
     this.textObjects.push(new TextObject(params));
     if(this.textObjects.length === 1){
       this.currentTextObject = this.textObjects[0];
@@ -632,6 +699,7 @@ class TextController extends foxIA.Interaction{
     }
   }
   switchTextObject(){
+    if(!this.isActive)return;
     if(this.currentId < 0)return;
     this.currentTextObject.inActivate();
     this.currentId = (this.currentId+1)%this.textObjects.length;
@@ -639,6 +707,7 @@ class TextController extends foxIA.Interaction{
     this.currentTextObject.activate();
   }
   modifyTextObject(name, content){
+    if(!this.isActive)return;
     if(this.textObjects.length === 0) return;
     this.currentTextObject.modify(name, content);
   }
