@@ -57,6 +57,24 @@
   グラデなら、今黒一色で初期化してるところをいじる形にはなるな
   あとはリファクタリング。その、コントローラーをまとめるとか（フォルダに）
   せいぜいそんくらいしかない
+
+  縦書きの改行込み
+  this.additionalTexts = [];
+  これを用意する
+  で
+  改行の場合には
+  まず\nでスプリットしたのち...
+
+  verticalの場合は
+  まず改行でsplitして配列を作ったうえで
+  それぞれにapplyVerticalして
+  ひとつめをcontentにぶち込んで
+  それ以降はadditionalにぶちこむ
+  んで描画の際に
+  設定したleadingのhorizontalに従って横に並べればいい
+  もちろん逆方向で
+
+  今気づいたけどtextLeadingの代わりに比率使えばautoLeading要らないや
 */
 
 let TC;
@@ -104,11 +122,17 @@ function createGUI(){
   controllers.content = gui.add(config, "content").onChange(
     (value) => {TC.modifyTextObject("content", value);}
   );
-  controllers.x = gui.add(config, "x", 0, CANVAS_WIDTH, 1).onChange(
-    (value) => {TC.modifyTextObject("x", value);}
+  controllers.x = gui.add(config, "x", -CANVAS_WIDTH, CANVAS_WIDTH, 1).onChange(
+    (value) => {
+      FC.setFrameRect({x:value});
+      TC.modifyTextObject("x", value);
+    }
   );
-  controllers.y = gui.add(config, "y", 0, CANVAS_HEIGHT, 1).onChange(
-    (value) => {TC.modifyTextObject("y", value);}
+  controllers.y = gui.add(config, "y", -CANVAS_HEIGHT, CANVAS_HEIGHT, 1).onChange(
+    (value) => {
+      FC.setFrameRect({y:value});
+      TC.modifyTextObject("y", value);
+    }
   );
   controllers.size = gui.add(config, "size", 10, 320, 1).onChange(
     (value) => {TC.modifyTextObject("size", value);}
@@ -362,6 +386,12 @@ class FrameController extends foxIA.Interaction{
       y:e.clientY - this.rect.top
     };
   }
+  setFrameRect(p){
+    if(!this.isActive)return;
+    const x = (p.x !== undefined ? p.x : this.currentFrame.x);
+    const y = (p.y !== undefined ? p.y : this.currentFrame.y);
+    this.currentFrame.setPosition(x, y);
+  }
   mouseDownDefaultAction(e){
     if(!this.isActive)return;
     const c = this.calcMousePosition(e);
@@ -382,7 +412,7 @@ class FrameController extends foxIA.Interaction{
     if(!this.isActive)return;
     const c = this.calcMousePosition(e);
     this.currentFrame.setCenter(c.x, c.y);
-    this.currentFrame.addForceToScaleSpeed(-e.deltaY*0.0003);
+    this.currentFrame.addForceToScaleSpeed(-e.deltaY*0.0001);
   }
   touchStartDefaultAction(e){
     if(!this.isActive)return;
@@ -429,6 +459,10 @@ class FrameRect{
   }
   captured(){
     this.isSelected = true;
+    config.x = this.x;
+    config.y = this.y;
+    controllers.x.updateDisplay();
+    controllers.y.updateDisplay();
   }
   released(){
     this.isSelected = false;
@@ -437,6 +471,10 @@ class FrameRect{
     return {
       x:this.x, y:this.y, w:this.w, h:this.h, s:this.scaleValue
     };
+  }
+  setPosition(x, y){
+    this.x = x;
+    this.y = y;
   }
   setCenter(x, y){
     this.center.set(x, y);
@@ -455,6 +493,13 @@ class FrameRect{
   slide(dx,dy){
     this.x += dx;
     this.y += dy;
+    // 離散化
+    this.x = Math.floor(this.x);
+    this.y = Math.floor(this.y);
+    config.x = this.x;
+    config.y = this.y;
+    controllers.x.updateDisplay();
+    controllers.y.updateDisplay();
   }
   update(){
     const prevScaleValue = this.scaleValue;
@@ -600,18 +645,26 @@ class TextObject{
     // 離散化
     this.x = Math.floor(this.x);
     this.y = Math.floor(this.y);
+    config.x = this.x;
+    config.y = this.y;
+    controllers.x.updateDisplay();
+    controllers.y.updateDisplay();
   }
   modify(name, content){
     if(!["x","y","content","alignV","alignH","fontType","size","leading","autoLeading", "vertical", "col","alphaValue"].includes(name)) return;
     // x,y,content,alignV,alignH,size
     if(name !== "col"){
       if(name === 'content'){
-        this.content = applyLineBreak(content);
-        // verticalで使う場合改行が絡むことはまずないので
-        // とはいえ場合分けも面倒なので直接やっちゃおう
         if(this.vertical){
           this.content = applyVerticalWriting(content);
+        }else{
+          this.content = applyLineBreak(content);
         }
+      }else if(name === 'vertical'){
+        // このときも変わるように
+        this.vertical = content;
+        // このときのconfig.contentはこのテキストのcontentのソースなのでこれでいいはず
+        this.modify('content', config.content);
       }else{
         this[name] = content;
       }
@@ -726,10 +779,12 @@ class TextController extends foxIA.Interaction{
     if(this.textObjects.length === 0) return;
     if(!this.isDragging)return;
     this.currentTextObject.slide(dx, dy);
+    /*
     config.x = this.currentTextObject.x;
     config.y = this.currentTextObject.y;
     controllers.x.updateDisplay();
     controllers.y.updateDisplay();
+    */
   }
   mouseUpDefaultAction(){
     if(!this.isActive)return;
@@ -745,10 +800,12 @@ class TextController extends foxIA.Interaction{
     if(this.textObjects.length === 0) return;
     if(!this.isDragging)return;
     this.currentTextObject.slide(dx, dy);
+    /*
     config.x = this.currentTextObject.x;
     config.y = this.currentTextObject.y;
     controllers.x.updateDisplay();
     controllers.y.updateDisplay();
+    */
   }
   touchEndDefaultAction(){
     if(!this.isActive)return;
